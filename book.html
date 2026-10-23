@@ -1,0 +1,514 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Наше Писание</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marck+Script&family=Manrope:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #e8c87a;
+            --dark: #0a0705;
+            --panel: rgba(20, 15, 10, 0.95);
+            --text: #f0e6d8;
+            --border: rgba(232, 200, 122, 0.3);
+            --parchment: #f4e8d3;
+            --ink: #2b1a10;
+            --color-him: #6cb4ee; 
+            --color-her: #e88ca8; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--dark); color: var(--text); font-family: "Manrope", sans-serif;
+            min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            background-image: url('https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            overflow: hidden;
+        }
+
+        body::before { content: ""; position: fixed; inset: 0; background: rgba(10, 7, 5, 0.9); z-index: -1; }
+
+        /* Верхняя панель */
+        .top-bar {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center; z-index: 100;
+            background: linear-gradient(to bottom, rgba(10,7,5,0.9), transparent);
+        }
+        .back-btn {
+            color: #a89680; text-decoration: none; border: 1px solid var(--border);
+            padding: 8px 15px; border-radius: 8px; font-size: 14px; transition: 0.3s;
+            background: transparent; cursor: pointer;
+        }
+        .back-btn:hover { color: var(--gold); border-color: var(--gold); }
+        .room-title { font-family: "Cinzel", serif; color: var(--gold); font-size: 18px; letter-spacing: 0.1em; }
+        .logout-btn {
+            background: transparent; border: 1px solid #e04545; color: #e04545;
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: 0.3s;
+        }
+        .logout-btn:hover { background: #e04545; color: #fff; }
+
+        /* Книга */
+        .book-container {
+            position: relative; width: 100%; max-width: 1000px; height: 85vh;
+            perspective: 2000px; margin-top: 50px;
+        }
+
+        .book {
+            position: relative; width: 100%; height: 100%;
+            transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Страницы */
+        .page {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            background: var(--parchment); border-radius: 8px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.8);
+            backface-visibility: hidden; display: flex; overflow: hidden;
+        }
+
+        /* Текстура бумаги */
+        .page::before {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background: url('https://www.transparenttextures.com/patterns/aged-paper.png'); opacity: 0.5; z-index: 0;
+        }
+
+        /* Левая и правая страницы */
+        .page-left, .page-right {
+            width: 50%; height: 100%; padding: 30px 20px; position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+        }
+
+        .page-left { border-right: 2px solid rgba(139, 107, 74, 0.4); box-shadow: inset -10px 0 20px rgba(0,0,0,0.1); }
+        .page-right { box-shadow: inset 10px 0 20px rgba(0,0,0,0.1); }
+
+        /* Заголовки на страницах */
+        .section-title {
+            font-family: "Playfair Display", serif; font-size: 20px; color: var(--ink);
+            font-style: italic; text-align: center; margin-bottom: 15px;
+            border-bottom: 1px dashed rgba(139, 107, 74, 0.5); padding-bottom: 8px;
+        }
+
+        /* Профили (Левая страница) */
+        .profiles-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .profile-card {
+            background: rgba(255,255,255,0.4); border: 1px solid rgba(139,107,74,0.3);
+            border-radius: 10px; padding: 15px; text-align: center; min-width: 100px;
+        }
+        .profile-avatar { font-size: 40px; margin-bottom: 5px; }
+        .profile-name { font-weight: bold; color: var(--ink); font-size: 14px; }
+        .profile-avatar.him { color: var(--color-him); }
+        .profile-avatar.her { color: var(--color-her); }
+
+        /* Таймер (Левая страница) */
+        .timer-container { margin-top: auto; }
+        .timer-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;
+        }
+        .timer-box {
+            background: rgba(139, 107, 74, 0.1); border: 1px solid rgba(139, 107, 74, 0.3);
+            border-radius: 8px; padding: 8px 5px; text-align: center;
+        }
+        .timer-num { font-family: "Playfair Display", serif; font-size: 20px; font-weight: bold; color: var(--ink); }
+        .timer-label { font-size: 9px; text-transform: uppercase; color: rgba(43, 26, 16, 0.7); }
+
+        /* Настройка даты */
+        .date-setup {
+            display: none; text-align: center; padding: 15px;
+            background: rgba(255,255,255,0.3); border-radius: 8px; border: 1px dashed rgba(139,107,74,0.5);
+        }
+        .date-setup input {
+            padding: 8px; border-radius: 6px; border: 1px solid rgba(139,107,74,0.4);
+            font-family: "Manrope"; width: 100%; margin-bottom: 10px;
+        }
+        .btn-ink {
+            background: var(--ink); color: var(--parchment); border: none; padding: 10px 15px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%;
+        }
+        .btn-ink:hover { background: #4a3020; }
+        .btn-text {
+            background: transparent; border: 1px solid rgba(139,107,74,0.3); color: rgba(43,26,16,0.6);
+            font-size: 11px; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%;
+        }
+
+        /* Смайлики и Письма (Правая страница) */
+        .mood-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .mood-row input[type="date"], .mood-row select {
+            width: 100%; background: rgba(255,255,255,0.5); border: 1px solid rgba(139,107,74,0.4);
+            color: var(--ink); padding: 8px; border-radius: 6px; font-family: "Manrope"; outline: none;
+        }
+
+        .mood-list { display: flex; flex-wrap: wrap; gap: 8px; overflow-y: auto; max-height: 120px; padding-right: 5px; margin-bottom: 15px; }
+        .mood-item {
+            background: rgba(255,255,255,0.4); border: 1px solid rgba(139,107,74,0.3);
+            border-radius: 6px; padding: 6px 10px; text-align: center; position: relative;
+        }
+        .mood-emoji { font-size: 20px; }
+        .mood-date { font-size: 9px; color: rgba(43,26,16,0.6); }
+        .delete-mood { position: absolute; top: 0; right: 2px; color: #a83232; cursor: pointer; font-size: 12px; border:none; background:transparent;}
+
+        .letter-form textarea {
+            width: 100%; height: 60px; background: rgba(255,255,255,0.5); border: 1px solid rgba(139,107,74,0.4);
+            color: var(--ink); padding: 8px; border-radius: 6px; font-family: "Manrope"; resize: none; margin-bottom: 8px; outline: none;
+        }
+        .letters-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 150px; padding-right: 5px; margin-bottom: 15px;}
+        .letter-mini {
+            background: rgba(255,255,255,0.6); padding: 10px; border-radius: 6px; font-family: "Marck Script", cursive;
+            font-size: 18px; color: var(--ink); border-left: 3px solid #8b6b4a; position: relative;
+        }
+        .letter-meta-mini { font-family: "Manrope"; font-size: 9px; color: #6b4c3a; border-bottom: 1px dashed #b09b89; margin-bottom: 5px; padding-bottom: 2px; display: flex; justify-content: space-between;}
+        .delete-letter-mini { position: absolute; top: 5px; right: 5px; color: #a83232; cursor: pointer; font-size: 16px; border:none; background:transparent;}
+
+        /* Кнопки игр (Правая страница) */
+        .games-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto;
+        }
+        .game-btn {
+            background: var(--ink); color: var(--parchment); border: none; padding: 10px 5px;
+            border-radius: 8px; cursor: pointer; text-align: center; text-decoration: none;
+            display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.3s;
+        }
+        .game-btn:hover { background: #4a3020; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .game-btn span:first-child { font-size: 20px; }
+        .game-btn span:last-child { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .book-container { height: 90vh; margin-top: 60px; perspective: none; }
+            .page { flex-direction: column; overflow-y: auto; }
+            .page-left, .page-right { width: 100%; height: auto; padding: 20px; border: none; box-shadow: none; }
+            .page-left { border-bottom: 2px solid rgba(139, 107, 74, 0.4); }
+            
+            .timer-grid { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+            .timer-num { font-size: 16px; }
+            .timer-label { font-size: 8px; }
+        }
+
+        .managed-by {
+            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+            font-family: "Cinzel", serif; font-size: 10px; letter-spacing: 0.15em;
+            text-transform: uppercase; color: rgba(232, 200, 122, 0.4); pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <button class="back-btn" onclick="window.location.href='rooms.html'">← К полке</button>
+        <div class="room-title" id="roomTitle">Комната</div>
+        <button class="logout-btn" onclick="logoutUser()">Выйти</button>
+    </div>
+
+    <div class="book-container">
+        <div class="page">
+            
+            <!-- ЛЕВАЯ СТРАНИЦА (Профили и Таймер) -->
+            <div class="page-left">
+                <div class="section-title">Участники</div>
+                <div class="profiles-grid" id="profilesGrid">
+                    <div style="color: rgba(43,26,16,0.5); font-size: 14px;">Загрузка...</div>
+                </div>
+
+                <div class="timer-container">
+                    <div class="section-title">Времени в пути</div>
+                    
+                    <!-- Настройка даты (скрыта по умолчанию) -->
+                    <div id="dateSetup" class="date-setup">
+                        <p style="font-size: 12px; margin-bottom: 10px; color: var(--ink);">Выберите дату начала:</p>
+                        <input type="date" id="startDateInput">
+                        <button class="btn-ink" onclick="saveStartDate()">Установить</button>
+                    </div>
+
+                    <!-- Сам таймер (скрыт, пока нет даты) -->
+                    <div id="timerDisplay" style="display: none;">
+                        <div class="timer-grid">
+                            <div class="timer-box"><div class="timer-num" id="years">0</div><div class="timer-label">Лет</div></div>
+                            <div class="timer-box"><div class="timer-num" id="months">0</div><div class="timer-label">Мес</div></div>
+                            <div class="timer-box"><div class="timer-num" id="days">0</div><div class="timer-label">Дней</div></div>
+                            <div class="timer-box"><div class="timer-num" id="hours">0</div><div class="timer-label">Час</div></div>
+                            <div class="timer-box"><div class="timer-num" id="minutes">0</div><div class="timer-label">Мин</div></div>
+                            <div class="timer-box"><div class="timer-num" id="seconds">0</div><div class="timer-label">Сек</div></div>
+                        </div>
+                        <button class="btn-text" onclick="showDateSetup()">Изменить дату</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ПРАВАЯ СТРАНИЦА (Смайлики, Письма, Игры) -->
+            <div class="page-right">
+                <!-- Смайлики -->
+                <div class="mood-inputs">
+                    <div class="mood-row">
+                        <input type="date" id="moodDate">
+                        <select id="moodEmoji">
+                            <option value="😍">😍 Влюблен(а)</option>
+                            <option value="😊">😊 Счастлив(а)</option>
+                            <option value="😐">😐 Спокойно</option>
+                            <option value="😔">😔 Печально</option>
+                            <option value="😡">😡 В гневе</option>
+                            <option value="🥱">🥱 Утомлен(а)</option>
+                        </select>
+                    </div>
+                    <button class="btn-ink" onclick="addMood()">Вписать в книгу</button>
+                </div>
+                <div class="mood-list" id="moodHistory"></div>
+
+                <!-- Письма -->
+                <div class="section-title">Послания</div>
+                <div class="letter-form">
+                    <textarea id="letterText" placeholder="Напишите послание..."></textarea>
+                    <button class="btn-ink" onclick="sendLetter()">Отправить</button>
+                </div>
+                <div class="letters-list" id="lettersList"></div>
+
+                <!-- Игры -->
+                <div class="games-grid">
+                    <a href="tamagotchi.html" class="game-btn">
+                        <span>🎁</span><span>Тамагочи</span>
+                    </a>
+                    <a href="garden.html" class="game-btn">
+                        <span>🪴</span><span>Сад</span>
+                    </a>
+                    <a href="drawing.html" class="game-btn">
+                        <span>🎨</span><span>Рисовашка</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="managed-by">Под управлением Теневого Контура</div>
+
+    <!-- ================= СКРИПТЫ ================= -->
+    <script>
+        let currentUserGender = null;
+        let currentUserRoom = null;
+        let currentUserUID = null;
+        let roomStartDate = null;
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue, set, remove, push, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwLURoXuJr7GjmvBDB18Tg0rwdI-0TkDc",
+            authDomain: "love-a3e53.firebaseapp.com",
+            databaseURL: "https://love-a3e53-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "love-a3e53",
+            storageBucket: "love-a3e53.firebasestorage.app",
+            messagingSenderId: "233454280895",
+            appId: "1:233454280895:web:9b0c89b11127e8198be60a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+            currentUserUID = user.uid;
+
+            const profileSnap = await get(ref(db, 'users/' + currentUserUID));
+            const profile = profileSnap.val();
+
+            if (!profile || !profile.room) { window.location.href = 'rooms.html'; return; }
+
+            currentUserGender = profile.gender;
+            currentUserRoom = profile.room;
+
+            document.getElementById('roomTitle').textContent = `Комната ${currentUserRoom}`;
+            document.getElementById('moodDate').valueAsDate = new Date();
+
+            loadProfiles();
+            startRoomListeners();
+            setInterval(updateTimer, 1000);
+        });
+
+        // --- ПРОФИЛИ ---
+        async function loadProfiles() {
+            const grid = document.getElementById('profilesGrid');
+            grid.innerHTML = '';
+            
+            const snapshot = await get(ref(db, 'users'));
+            const users = snapshot.val();
+
+            if (users) {
+                for (let uid in users) {
+                    if (users[uid].room === currentUserRoom) {
+                        const u = users[uid];
+                        const isHim = u.gender === 'him';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'profile-card';
+                        card.innerHTML = `
+                            <div class="profile-avatar ${isHim ? 'him' : 'her'}">${isHim ? '♂' : '♀'}</div>
+                            <div class="profile-name">${u.nickname}</div>
+                        `;
+                        grid.appendChild(card);
+                    }
+                }
+            }
+        }
+
+        // --- ТАЙМЕР ---
+        function updateTimer() {
+            if (!roomStartDate) return; 
+
+            const now = new Date();
+            let years = now.getFullYear() - roomStartDate.getFullYear();
+            let months = now.getMonth() - roomStartDate.getMonth();
+            let days = now.getDate() - roomStartDate.getDate();
+
+            if (days < 0) { months--; const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0); days += prevMonth.getDate(); }
+            if (months < 0) { years--; months += 12; }
+
+            let tempDate = new Date(roomStartDate);
+            tempDate.setFullYear(roomStartDate.getFullYear() + years);
+            tempDate.setMonth(tempDate.getMonth() + months);
+            let diffMs = now - tempDate;
+
+            let hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+            let minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+            let seconds = Math.floor((diffMs / 1000) % 60);
+
+            document.getElementById('years').textContent = years;
+            document.getElementById('months').textContent = months;
+            document.getElementById('days').textContent = days;
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+
+        window.showDateSetup = function() {
+            document.getElementById('timerDisplay').style.display = 'none';
+            document.getElementById('dateSetup').style.display = 'block';
+            if (roomStartDate) {
+                const y = roomStartDate.getFullYear();
+                const m = (roomStartDate.getMonth() + 1).toString().padStart(2, '0');
+                const d = roomStartDate.getDate().toString().padStart(2, '0');
+                document.getElementById('startDateInput').value = `${y}-${m}-${d}`;
+            }
+        };
+
+        window.saveStartDate = async function() {
+            const dateVal = document.getElementById('startDateInput').value;
+            if (!dateVal) return alert("Выберите дату!");
+            
+            await set(ref(db, 'rooms/' + currentUserRoom + '/startDate'), new Date(dateVal).toISOString());
+        };
+
+        // --- СЛУШАТЕЛИ ---
+        function startRoomListeners() {
+            // Слушатель даты
+            const dateRef = ref(db, 'rooms/' + currentUserRoom + '/startDate');
+            onValue(dateRef, (snapshot) => {
+                const dateVal = snapshot.val();
+                if (dateVal) {
+                    roomStartDate = new Date(dateVal);
+                    document.getElementById('timerDisplay').style.display = 'block';
+                    document.getElementById('dateSetup').style.display = 'none';
+                } else {
+                    roomStartDate = null;
+                    document.getElementById('timerDisplay').style.display = 'none';
+                    document.getElementById('dateSetup').style.display = 'block';
+                }
+            });
+
+            // Смайлики
+            onValue(ref(db, 'rooms/' + currentUserRoom + '/moods'), (snapshot) => {
+                const data = snapshot.val();
+                const moods = [];
+                if (data) { for (let key in data) { const m = data[key]; m.dbId = key; moods.push(m); } }
+                moods.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderMoods(moods);
+            });
+
+            // Письма
+            onValue(ref(db, 'rooms/' + currentUserRoom + '/letters'), (snapshot) => {
+                const data = snapshot.val();
+                const letters = [];
+                if (data) { for (let key in data) { const l = data[key]; l.dbId = key; letters.push(l); } }
+                letters.sort((a, b) => b.timestamp - a.timestamp);
+                renderLetters(letters);
+            });
+        }
+
+        // --- ОТРИСОВКА ---
+        function renderMoods(moods) {
+            const container = document.getElementById('moodHistory');
+            container.innerHTML = '';
+            moods.forEach(m => {
+                const d = new Date(m.date);
+                const dateStr = `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth()+1).toString().padStart(2, '0')}`;
+                const div = document.createElement('div');
+                div.className = 'mood-item';
+                div.innerHTML = `
+                    <div class="mood-date">${dateStr} ${m.user === 'him' ? '♂' : '♀'}</div>
+                    <div class="mood-emoji">${m.emoji}</div>
+                    <button class="delete-mood" onclick="deleteMood('${m.dbId}')">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderLetters(letters) {
+            const container = document.getElementById('lettersList');
+            container.innerHTML = '';
+            letters.forEach(l => {
+                const d = new Date(l.timestamp);
+                const dateStr = `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth()+1).toString().padStart(2, '0')}`;
+                const div = document.createElement('div');
+                div.className = 'letter-mini';
+                div.innerHTML = `
+                    <div class="letter-meta-mini">
+                        <span>${l.user === 'him' ? '♂' : '♀'}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    ${l.text}
+                    <button class="delete-letter-mini" onclick="deleteLetter('${l.dbId}')">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- ДЕЙСТВИЯ ---
+        window.addMood = async function() {
+            const date = document.getElementById('moodDate').value;
+            const emoji = document.getElementById('moodEmoji').value;
+            if (!date) return alert("Выберите дату!");
+            
+            const moodId = date + '_' + currentUserGender;
+            await set(ref(db, 'rooms/' + currentUserRoom + '/moods/' + moodId), { date, emoji, user: currentUserGender });
+        };
+
+        window.deleteMood = async function(id) {
+            if (!confirm('Стереть запись?')) return;
+            await remove(ref(db, 'rooms/' + currentUserRoom + '/moods/' + id));
+        };
+
+        window.sendLetter = async function() {
+            const text = document.getElementById('letterText').value.trim();
+            if (!text) return;
+            
+            const newLetterRef = push(ref(db, 'rooms/' + currentUserRoom + '/letters'));
+            await set(newLetterRef, { text, user: currentUserGender, timestamp: Date.now() });
+            document.getElementById('letterText').value = '';
+        };
+
+        window.deleteLetter = async function(id) {
+            if (!confirm('Сжечь письмо?')) return;
+            await remove(ref(db, 'rooms/' + currentUserRoom + '/letters/' + id));
+        };
+
+        window.logoutUser = async function() {
+            await signOut(auth);
+            window.location.href = 'index.html';
+        };
+    </script>
+</body>
+</html>
