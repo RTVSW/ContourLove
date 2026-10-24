@@ -1,0 +1,508 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Врата — Наше Пространство</title>
+    
+    <!-- ФАВИКОНКИ -->
+    <link rel="icon" type="image/png" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" href="favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Marck+Script&family=Manrope:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #e8c87a;
+            --gold-bright: #f5d98a;
+            --dark: #050508;
+            --panel: rgba(15, 12, 10, 0.95);
+            --text: #f0e6d8;
+            --border: rgba(232, 200, 122, 0.3);
+            --error: #e04545;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--dark);
+            color: var(--text);
+            font-family: "Manrope", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.6s ease-in-out;
+            
+            /* ВИТРАЖНЫЙ ФОН */
+            background-image: 
+                conic-gradient(from 180deg at 50% 0%, transparent 40%, rgba(232, 200, 122, 0.15) 45%, rgba(232, 200, 122, 0.3) 50%, rgba(232, 200, 122, 0.15) 55%, transparent 60%),
+                radial-gradient(circle at 20% 80%, rgba(40, 60, 120, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(100, 30, 60, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, #0a0c14 0%, #030305 100%);
+            
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+        }
+
+        body.fade-out { opacity: 0; }
+
+        /* ВРАТА (Арка) */
+        .temple-gate {
+            position: relative;
+            background: var(--panel);
+            border: 3px solid var(--border);
+            border-bottom: none;
+            border-radius: 200px 200px 0 0;
+            padding: 60px 40px 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9), inset 0 0 30px rgba(232, 200, 122, 0.05);
+            margin-top: 50px;
+        }
+
+        .temple-gate::before {
+            content: "✦";
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(232, 200, 122, 0.8);
+        }
+
+        .title {
+            font-family: "Playfair Display", serif;
+            font-size: 28px;
+            color: var(--gold);
+            margin-bottom: 5px;
+            font-style: italic;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(232, 200, 122, 0.4);
+        }
+
+        .subtitle-gate {
+            font-family: "Cinzel", serif;
+            font-size: 12px;
+            color: #a89680;
+            letter-spacing: 0.2em;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        /* БЛОК ОПОВЕЩЕНИЙ */
+        .news-board {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(232, 200, 122, 0.3);
+            border-left: 3px solid var(--gold);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: left;
+            animation: fadeIn 0.5s ease;
+            box-shadow: inset 0 0 15px rgba(232, 200, 122, 0.05);
+        }
+
+        .news-title {
+            font-family: "Playfair Display", serif;
+            font-size: 13px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .news-content {
+            font-size: 14px;
+            color: #e0d0bc;
+            line-height: 1.5;
+        }
+
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            cursor: pointer;
+            font-family: "Playfair Display", serif;
+            font-size: 16px;
+            color: #a89680;
+            transition: 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--gold);
+            border-bottom: 2px solid var(--gold);
+            text-shadow: 0 0 10px rgba(232, 200, 122, 0.3);
+        }
+
+        /* Формы */
+        .form-container {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--border);
+            padding: 14px 40px 14px 14px;
+            color: #fff;
+            font-size: 15px;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+            font-family: "Manrope";
+        }
+
+        .input-group input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(232, 200, 122, 0.15);
+        }
+
+        /* Иконка глаза */
+        .eye-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #a89680;
+            font-size: 18px;
+            transition: 0.3s;
+            user-select: none;
+            opacity: 0.6;
+        }
+
+        .eye-icon:hover { 
+            color: var(--gold);
+            opacity: 1; 
+        }
+
+        /* Выбор пола */
+        .gender-select {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .gender-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+            border: 2px solid var(--border);
+            color: #a89680;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .gender-btn.active[data-gender="him"] { 
+            background: #6cb4ee; 
+            color: #000; 
+            border-color: #6cb4ee; 
+            box-shadow: 0 0 20px rgba(108, 180, 238, 0.5); 
+        }
+        
+        .gender-btn.active[data-gender="her"] { 
+            background: #e88ca8; 
+            color: #000; 
+            border-color: #e88ca8; 
+            box-shadow: 0 0 20px rgba(232, 140, 168, 0.5); 
+        }
+
+        /* Кнопка */
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            background: linear-gradient(145deg, var(--gold), #c9a24d);
+            color: var(--dark);
+            font-family: "Cinzel", serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            text-transform: uppercase;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 0 20px rgba(232, 200, 122, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        /* Подпись */
+        .managed-by {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: "Cinzel", serif;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(232, 200, 122, 0.3);
+            pointer-events: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Оверлей перехода */
+        .page-transition-overlay {
+            position: fixed; inset: 0; background: #050508; z-index: 99999;
+            pointer-events: none; opacity: 1; transition: opacity 0.6s ease-in-out;
+        }
+        .page-transition-overlay.hide { opacity: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="page-transition-overlay" id="transitionOverlay"></div>
+
+    <!-- ВРАТА -->
+    <div class="temple-gate">
+        <div class="title">Врата</div>
+        <div class="subtitle-gate">Вход для избранных</div>
+
+        <!-- БЛОК ОПОВЕЩЕНИЙ -->
+        <div id="newsBoard" class="news-board" style="display: none;">
+            <div class="news-title">📜 Сводка</div>
+            <div id="newsContent" class="news-content"></div>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">Вход</div>
+            <div class="tab" onclick="switchTab('register')">Регистрация</div>
+        </div>
+
+        <!-- ФОРМА ВХОДА -->
+        <div id="loginForm" class="form-container active">
+            <div class="input-group">
+                <input type="email" id="loginEmail" placeholder="Email" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Пароль" autocomplete="off">
+                <span class="eye-icon" onclick="togglePassword('loginPassword', this)">👁️</span>
+            </div>
+            <button class="submit-btn" onclick="loginUser()">Войти</button>
+        </div>
+
+        <!-- ФОРМА РЕГИСТРАЦИИ -->
+        <div id="registerForm" class="form-container">
+            <div class="input-group">
+                <input type="text" id="regNickname" placeholder="Ваш никнейм (Имя)" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="email" id="regEmail" placeholder="Email" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" id="regPassword" placeholder="Пароль (мин. 6 символов)" autocomplete="off">
+                <span class="eye-icon" onclick="togglePassword('regPassword', this)">👁️</span>
+            </div>
+
+            <div class="gender-select">
+                <button class="gender-btn" data-gender="him" onclick="selectGender('him')">♂</button>
+                <button class="gender-btn" data-gender="her" onclick="selectGender('her')">♀</button>
+            </div>
+
+            <button class="submit-btn" onclick="registerUser()">Вступить</button>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <div class="managed-by">Под управлением Теневого Контура</div>
+
+    <!-- ================= СКРИПТЫ ================= -->
+    <script>
+        // Плавные переходы
+        window.addEventListener('load', () => {
+            document.getElementById('transitionOverlay').classList.add('hide');
+        });
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.hostname === window.location.hostname && !link.getAttribute('target')) {
+                e.preventDefault();
+                document.body.classList.add('fade-out');
+                setTimeout(() => { window.location.href = link.href; }, 500);
+            }
+        });
+
+        // Логика вкладок и форм
+        let selectedGender = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+            document.getElementById('errorMsg').style.display = 'none';
+
+            if (tab === 'login') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+        }
+
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.style.opacity = '1';
+                icon.style.color = 'var(--gold)';
+            } else {
+                input.type = 'password';
+                icon.style.opacity = '0.6';
+                icon.style.color = '#a89680';
+            }
+        }
+
+        function selectGender(gender) {
+            selectedGender = gender;
+            document.querySelectorAll('.gender-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.gender === gender) btn.classList.add('active');
+            });
+        }
+
+        function showError(msg) {
+            const err = document.getElementById('errorMsg');
+            err.textContent = msg;
+            err.style.display = 'block';
+        }
+
+        window.loginUser = async function() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) return showError("Заполните все поля.");
+            if (window.firebaseLogin) window.firebaseLogin(email, pass);
+        }
+
+        window.registerUser = async function() {
+            const nick = document.getElementById('regNickname').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPassword').value;
+            if (!nick || !email || !pass) return showError("Заполните все поля.");
+            if (!selectedGender) return showError("Выберите символ ♂ или ♀.");
+            if (pass.length < 6) return showError("Пароль должен быть от 6 символов.");
+            if (window.firebaseRegister) window.firebaseRegister(nick, email, pass, selectedGender);
+        }
+    </script>
+
+    <!-- ================= FIREBASE ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwLURoXuJr7GjmvBDB18Tg0rwdI-0TkDc",
+            authDomain: "love-a3e53.firebaseapp.com",
+            databaseURL: "https://love-a3e53-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "love-a3e53",
+            storageBucket: "love-a3e53.firebasestorage.app",
+            messagingSenderId: "233454280895",
+            appId: "1:233454280895:web:9b0c89b11127e8198be60a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        // СЛУШАТЕЛЬ ОПОВЕЩЕНИЙ (Работает без авторизации)
+        onValue(ref(db, 'news'), (snapshot) => {
+            const data = snapshot.val();
+            const board = document.getElementById('newsBoard');
+            const content = document.getElementById('newsContent');
+
+            if (data && data.active && data.text) {
+                content.textContent = data.text;
+                board.style.display = 'block';
+            } else {
+                board.style.display = 'none';
+            }
+        });
+
+        // ВХОД
+        window.firebaseLogin = async function(email, password) {
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                document.body.classList.add('fade-out');
+                setTimeout(() => { window.location.href = 'rooms.html'; }, 500);
+            } catch (error) {
+                document.getElementById('errorMsg').textContent = "Неверный email или пароль.";
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        };
+
+        // РЕГИСТРАЦИЯ
+        window.firebaseRegister = async function(nickname, email, password, gender) {
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+
+                await set(ref(db, 'users/' + uid), {
+                    nickname: nickname,
+                    email: email,
+                    gender: gender
+                });
+
+                document.body.classList.add('fade-out');
+                setTimeout(() => { window.location.href = 'rooms.html'; }, 500);
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    document.getElementById('errorMsg').textContent = "Этот email уже зарегистрирован.";
+                } else {
+                    document.getElementById('errorMsg').textContent = "Ошибка: " + error.message;
+                }
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>
